@@ -1,0 +1,33 @@
+{
+  "_verified": false,
+  "doc_type": "invoice",
+  "document_kind": "invoice",
+  "language": "en",
+  "supplier_name": "HANOVER AND TYKE",
+  "supplier_siret": null,
+  "supplier_vat_number": null,
+  "customer_name": "Ms. Taylor Alonso",
+  "invoice_number": "2032-001",
+  "invoice_date": null,
+  "due_date": null,
+  "currency": "USD",
+  "total_ht": 1200.0,
+  "total_vat": null,
+  "total_ttc": 1200.0,
+  "iban": null,
+  "lines": [
+    {
+      "description": "Social Media Management",
+      "total_ht": 900.0
+    },
+    {
+      "description": "Branded Graphics",
+      "total_ht": 245.0
+    },
+    {
+      "description": "Update Blog Post",
+      "total_ht": 55.0
+    }
+  ],
+  "vat_breakdown": []
+}

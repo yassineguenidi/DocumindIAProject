@@ -1,0 +1,43 @@
+{
+  "_verified": false,
+  "doc_type": "invoice",
+  "document_kind": "invoice",
+  "language": "en",
+  "supplier_name": "Juliana Silva",
+  "supplier_siret": null,
+  "supplier_vat_number": null,
+  "customer_name": "Estelle Darcy",
+  "invoice_number": "12345",
+  "invoice_date": "2025-07-30",
+  "due_date": "2025-07-10",
+  "currency": "USD",
+  "total_ht": 870.0,
+  "total_vat": 87.0,
+  "total_ttc": 957.0,
+  "iban": null,
+  "lines": [
+    {
+      "description": "White Basic Tank Top",
+      "total_ht": 160.0
+    },
+    {
+      "description": "Denim Jacket",
+      "total_ht": 320.0
+    },
+    {
+      "description": "Bamboo Underwear",
+      "total_ht": 150.0
+    },
+    {
+      "description": "Striped Pants",
+      "total_ht": 240.0
+    }
+  ],
+  "vat_breakdown": [
+    {
+      "rate": 10.0,
+      "base": 870.0,
+      "amount": 87.0
+    }
+  ]
+}
