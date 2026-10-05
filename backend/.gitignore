@@ -1,0 +1,7 @@
+.venv/
+.env
+storage/
+documind.db
+__pycache__/
+eval/cases/
+eval/runs/
