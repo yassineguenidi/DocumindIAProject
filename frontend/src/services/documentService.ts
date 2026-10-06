@@ -1,5 +1,5 @@
 import { api } from './api'
-import type { DocumentItem, DocumentList, Stats, Usage } from '../types'
+import type { DocumentItem, DocumentList, Layout, Stats, Usage } from '../types'
 
 export async function uploadDocument(file: File, onProgress?: (pct: number) => void): Promise<DocumentItem> {
     const form = new FormData()
@@ -42,3 +42,21 @@ export async function downloadDocument(id: number, filename: string): Promise<vo
 export const fetchUsage = () => api.get<Usage>('/documents/usage').then((r) => r.data)
 export const fetchStats = () => api.get<Stats>('/documents/stats').then((r) => r.data)
 export const deleteDocument = (id: number) => api.delete(`/documents/${id}`)
+
+export const fetchDocument = (id: number) =>
+    api.get<DocumentItem>(`/documents/${id}`).then((r) => r.data)
+
+export const fetchLayout = (id: number) =>
+    api.get<Layout>(`/documents/${id}/layout`).then((r) => r.data)
+
+export async function fetchPageImage(id: number, page: number): Promise<string> {
+    // L'image est protégée par le token : on la récupère via axios puis on en fait une URL locale
+    const { data } = await api.get<Blob>(`/documents/${id}/pages/${page}/image`, { responseType: 'blob' })
+    return URL.createObjectURL(data)
+}
+
+export const saveReview = (id: number, data: Record<string, unknown>, markValidated: boolean) =>
+    api.put<DocumentItem>(`/documents/${id}/review`, { data, mark_validated: markValidated }).then((r) => r.data)
+
+export const reprocessDocument = (id: number) =>
+    api.post<DocumentItem>(`/documents/${id}/reprocess`).then((r) => r.data)

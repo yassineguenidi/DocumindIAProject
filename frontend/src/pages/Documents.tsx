@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
     ChevronLeft, ChevronRight, Download, FileImage, FileText, Inbox, LoaderCircle,
-    Plus, RefreshCw, Search, SearchX, Trash2,
+    Plus, RefreshCw, Search, SearchX, Trash2, FileSearch,
 } from 'lucide-react'
 import { StatusBadge } from '../components/documents/StatusBadge'
 import { DocumentDrawer } from '../components/documents/DocumentDrawer'
@@ -17,6 +17,7 @@ import { docTypeLabel, formatBytes, formatDateTime } from '../utils/format'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { useToast } from '../contexts/ToastContext'
 
+import { Link } from 'react-router-dom'
 
 const TABS: { id: StatusFilter; label: string }[] = [
     { id: 'all', label: 'Tous' },
@@ -182,6 +183,10 @@ export default function Documents() {
                                             <td className="muted hidden px-3 py-3.5 sm:table-cell">{formatDateTime(d.created_at)}</td>
                                             <td className="px-5 py-3.5">
                                                 <div className="flex justify-end gap-1">
+
+                                                    <Link to={`/app/documents/${d.id}`} className={iconBtn} aria-label={`Relire ${d.original_filename}`}>
+                                                        <FileSearch size={18} />
+                                                    </Link>
                                                     <button onClick={() => void handleDownload(d)} disabled={downloadingId === d.id} className={iconBtn} aria-label={`Télécharger ${d.original_filename}`}>
                                                         {downloadingId === d.id ? <LoaderCircle size={18} className="animate-spin" /> : <Download size={18} />}
                                                     </button>

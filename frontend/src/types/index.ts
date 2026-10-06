@@ -55,9 +55,28 @@ export interface Stats {
 
 
 export interface Plan {
-  code: string
-  name: string
-  monthly_doc_quota: number | null
-  max_file_size_mb: number
+    code: string
+    name: string
+    monthly_doc_quota: number | null
+    max_file_size_mb: number
 }
 
+
+export interface LayoutWord { t: string; x: number; y: number; w: number; h: number }
+export interface LayoutPage { number: number; width: number; height: number; words: LayoutWord[] }
+export interface Layout { kind: 'pdf' | 'image'; pages: LayoutPage[] }
+
+export interface ValidationIssue {
+    code: string
+    severity: 'error' | 'warning'
+    message: string
+    field: string | null
+}
+
+export interface Review {
+    validated: boolean
+    validated_with_issues?: boolean
+    by: number
+    at: string
+    corrected_fields: string[]
+}

@@ -44,3 +44,8 @@ class StatsResponse(BaseModel):
     done: int
     failed: int
     activity: List[ActivityPoint]  # 14 derniers jours    
+
+
+class ReviewUpdate(BaseModel):
+    data: dict
+    mark_validated: bool = False    

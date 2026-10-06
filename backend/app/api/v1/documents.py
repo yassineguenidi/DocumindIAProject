@@ -17,6 +17,11 @@ from app.services import document_service
 from app.models import DocumentStatus, User
 from app.services.pipeline.runner import process_document
 
+
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, Response, UploadFile
+from app.schemas.document import DocumentList, DocumentResponse, ReviewUpdate, StatsResponse, UsageResponse
+from app.services import document_service, layout_service, review_service
+
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 
@@ -102,3 +107,26 @@ def download_document(doc_id: int, user: User = Depends(get_current_user), db: S
 @router.delete("/{doc_id}", status_code=204)
 def delete_document(doc_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     document_service.delete(db, user, doc_id)
+
+
+def _own_doc(db: Session, user: User, doc_id: int):
+    doc = document_repository.get_for_company(db, doc_id, user.company_id)
+    if not doc:
+        raise HTTPException(404, "Document introuvable")
+    return doc
+
+
+@router.get("/{doc_id}/layout")
+def get_layout(doc_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return layout_service.get_layout(_own_doc(db, user, doc_id))
+
+
+@router.get("/{doc_id}/pages/{page}/image")
+def get_page_image(doc_id: int, page: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    content, media_type = layout_service.render_page(_own_doc(db, user, doc_id), page)
+    return Response(content=content, media_type=media_type, headers={"Cache-Control": "private, max-age=600"})
+
+
+@router.put("/{doc_id}/review", response_model=DocumentResponse)
+def review_document(doc_id: int, data: ReviewUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return review_service.apply_review(db, user, _own_doc(db, user, doc_id), data)    

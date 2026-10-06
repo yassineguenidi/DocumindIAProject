@@ -1,5 +1,9 @@
+import re
+import unicodedata
 from datetime import date
-from typing import List, Optional
+from typing import List, Optional, Tuple
+
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 def _num(v) -> Optional[float]:
@@ -19,6 +23,27 @@ def _date(s) -> Optional[date]:
 
 def _compact(s) -> str:
     return "".join(ch for ch in str(s or "") if ch.isalnum()).upper()
+
+
+def _digits(s) -> str:
+    return re.sub(r"\D", "", str(s or ""))
+
+
+def _fold(s) -> str:
+    s = unicodedata.normalize("NFKD", str(s or "").lower())
+    return "".join(ch for ch in s if not unicodedata.combining(ch))
+
+
+def parse_ym(v, as_end: bool = False) -> Optional[Tuple[int, int]]:
+    """'2021-03' -> (2021, 3). Une année seule vaut janvier (début) ou décembre (fin)."""
+    m = re.fullmatch(r"(\d{4})(?:-(\d{2}))?", str(v or "").strip())
+    if not m:
+        return None
+    year = int(m.group(1))
+    if m.group(2):
+        month = int(m.group(2))
+        return (year, month) if 1 <= month <= 12 else None
+    return (year, 12 if as_end else 1)
 
 
 def luhn_ok(digits: str) -> bool:
@@ -65,13 +90,40 @@ def iban_ok(value) -> bool:
     return n % 97 == 1
 
 
+_FIELD_BY_CODE = {
+    "ungrounded_number": "invoice_number",
+    "total_mismatch": "total_ttc", "negative_total": "total_ttc",
+    "bad_invoice_date": "invoice_date", "bad_due_date": "due_date", "due_before_invoice": "due_date",
+    "lines_mismatch": "lines", "vat_sum_mismatch": "vat_breakdown", "vat_rate_mismatch": "vat_breakdown",
+    "bad_siret": "supplier_siret", "bad_vat_number": "supplier_vat_number", "bad_iban": "iban",
+    "missing_name": "first_name", "bad_email": "email", "empty_cv": "experiences",
+    "bad_date": "experiences", "end_before_start": "experiences", "future_start": "experiences",
+}
+
+
+def _field_of(code: str) -> Optional[str]:
+    if code in _FIELD_BY_CODE:
+        return _FIELD_BY_CODE[code]
+    for prefix in ("missing_", "ungrounded_"):
+        if code.startswith(prefix):
+            return code[len(prefix):]
+    return None
+
+
 def _issue(code: str, severity: str, message: str) -> dict:
     # "error" = probable erreur d'extraction (déclenche un second essai avec le modèle puissant)
     # "warning" = point à vérifier par un humain
-    return {"code": code, "severity": severity, "message": message}
+    return {"code": code, "severity": severity, "message": message, "field": _field_of(code)}
 
 
-def validate_invoice(d: dict) -> List[dict]:
+def _amount_in_text(v: float, digits_text: str) -> bool:
+    """Le montant (1 234,56 / 1,234.56 / 1234.56) figure-t-il dans le texte ? Compare les chiffres seuls."""
+    cents = f"{abs(v):.2f}".replace(".", "")
+    return cents in digits_text or (float(v).is_integer() and str(int(abs(v))) in digits_text)
+
+
+# ---------------------------------------------------------------- factures
+def validate_invoice(d: dict, text: str = "") -> List[dict]:
     issues: List[dict] = []
 
     for field, label in (("supplier_name", "fournisseur"), ("invoice_number", "numéro de facture"),
@@ -114,5 +166,52 @@ def validate_invoice(d: dict) -> List[dict]:
         issues.append(_issue("bad_vat_number", "warning", "N° de TVA du fournisseur invalide (clé de contrôle)"))
     if d.get("iban") and not iban_ok(d["iban"]):
         issues.append(_issue("bad_iban", "warning", "IBAN invalide (clé de contrôle)"))
+
+    if text:  # ancrage : une valeur absente du texte source est probablement inventée
+        if d.get("invoice_number") and _compact(d["invoice_number"]) not in _compact(text):
+            issues.append(_issue("ungrounded_number", "warning", "N° de facture introuvable dans le texte (à vérifier)"))
+        digits_text = _digits(text)
+        for field, label in (("total_ht", "Total HT"), ("total_vat", "TVA"), ("total_ttc", "Total TTC")):
+            v = _num(d.get(field))
+            if v is not None and not _amount_in_text(v, digits_text):
+                issues.append(_issue(f"ungrounded_{field}", "warning", f"{label} introuvable dans le texte (à vérifier)"))
+
+    return issues
+
+
+# --------------------------------------------------------------------- CV
+def validate_cv(d: dict, text: str = "") -> List[dict]:
+    issues: List[dict] = []
+
+    if not (d.get("first_name") or d.get("last_name")):
+        issues.append(_issue("missing_name", "error", "Nom du candidat introuvable"))
+    experiences = d.get("experiences") or []
+    if not (experiences or d.get("education") or d.get("skills")):
+        issues.append(_issue("empty_cv", "error", "Aucune expérience, formation ni compétence détectée"))
+    if d.get("email") and not EMAIL_RE.match(str(d["email"]).strip()):
+        issues.append(_issue("bad_email", "warning", "Adresse e-mail invalide"))
+
+    today = (date.today().year, date.today().month)
+    for i, e in enumerate(experiences, 1):
+        label = e.get("company") or e.get("title") or f"expérience {i}"
+        for name, value in (("début", e.get("start_date")), ("fin", e.get("end_date"))):
+            if value and parse_ym(value) is None:
+                issues.append(_issue("bad_date", "error", f"Date de {name} invalide ({label})"))
+        start, end = parse_ym(e.get("start_date")), parse_ym(e.get("end_date"), as_end=True)
+        if start and end and end < start:
+            issues.append(_issue("end_before_start", "warning", f"Fin antérieure au début ({label})"))
+        if start and start > today:
+            issues.append(_issue("future_start", "warning", f"Début dans le futur ({label})"))
+
+    if text:  # ancrage
+        folded = _fold(text)
+        if d.get("email") and str(d["email"]).strip().lower() not in text.lower():
+            issues.append(_issue("ungrounded_email", "warning", "E-mail introuvable dans le texte du CV (à vérifier)"))
+        phone = _digits(d.get("phone"))
+        if len(phone) >= 9 and phone[-9:] not in _digits(text):
+            issues.append(_issue("ungrounded_phone", "warning", "Téléphone introuvable dans le texte du CV (à vérifier)"))
+        for key, label in (("first_name", "Prénom"), ("last_name", "Nom")):
+            if d.get(key) and _fold(d[key]) not in folded:
+                issues.append(_issue(f"ungrounded_{key}", "warning", f"{label} introuvable dans le texte du CV (à vérifier)"))
 
     return issues

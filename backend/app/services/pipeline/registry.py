@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Type
+from typing import Callable, Dict, List, Optional, Type
 
 from pydantic import BaseModel
 
+from app.schemas.cv import CVData
 from app.schemas.invoice import InvoiceData
-from app.services.pipeline import validators
+from app.services.pipeline import enrichers, validators
 
 # Types reconnus par la classification (même ceux qu'on ne sait pas encore extraire)
 CLASSES = ["invoice", "cv", "contract", "id", "other"]
@@ -16,14 +17,15 @@ class DocTypeDef:
     label: str
     schema: Type[BaseModel]
     instructions: str
-    validate: Callable[[dict], List[dict]]
+    validate: Callable[[dict, str], List[dict]]
+    enrich: Optional[Callable[[dict], dict]] = None
 
 
 INVOICE = DocTypeDef(
     code="invoice",
     label="facture",
     schema=InvoiceData,
-        instructions=(
+    instructions=(
         "Il s'agit d'une facture ou d'un avoir, en français ou en anglais (ou une autre langue). "
         "Nombres : renvoie toujours un nombre avec point décimal, sans symbole ni séparateur de milliers. "
         "Déduis le format de la langue du document : 1 234,56 € (français) et 1,234.56 $ (anglais) valent tous deux 1234.56. "
@@ -41,5 +43,27 @@ INVOICE = DocTypeDef(
     validate=validators.validate_invoice,
 )
 
-# Ajouter un type = ajouter une définition ici (le CV arrive à l'étape 7.5)
-REGISTRY: Dict[str, DocTypeDef] = {d.code: d for d in (INVOICE,)}
+CV = DocTypeDef(
+    code="cv",
+    label="CV",
+    schema=CVData,
+    instructions=(
+        "Il s'agit d'un CV, en français ou en anglais (ou une autre langue). Extrais uniquement ce qui est écrit. "
+        "Ne renseigne JAMAIS l'âge, la date de naissance, le genre, la nationalité, la situation familiale, les enfants, "
+        "l'état de santé, ni aucune information sur l'origine ou la photo : ces données sont volontairement ignorées, "
+        "y compris dans le résumé et les descriptions. "
+        "location : ville et pays seulement, jamais l'adresse complète. "
+        "email et phone : recopie-les tels qu'écrits. "
+        "Dates au format AAAA-MM (AAAA si le mois est absent). Pour un poste en cours (présent, aujourd'hui, en cours, "
+        "current, present), mets is_current à true et end_date à null. "
+        "skills : uniquement des compétences explicitement écrites ; source skills_section si elles figurent dans une rubrique "
+        "de compétences, sinon experience. N'invente et ne déduis aucune compétence. "
+        "Une entrée par poste, formation, langue et certification, dans l'ordre du document. "
+        "language : langue principale du CV (fr, en...)."
+    ),
+    validate=validators.validate_cv,
+    enrich=enrichers.cv_derived,
+)
+
+# Ajouter un type = ajouter une définition ici
+REGISTRY: Dict[str, DocTypeDef] = {d.code: d for d in (INVOICE, CV)}

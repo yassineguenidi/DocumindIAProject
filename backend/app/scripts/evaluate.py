@@ -27,10 +27,13 @@ SCALARS = [
     "document_kind", "language", "supplier_name", "supplier_siret", "supplier_vat_number",
     "customer_name", "invoice_number", "invoice_date", "due_date", "currency",
     "total_ht", "total_vat", "total_ttc", "iban",
+    "first_name", "last_name", "email", "phone", "location", "headline",
 ]
+EXACT_STR = {"invoice_date", "due_date", "document_kind", "language", "currency", "email"}
+
+
 NUMERIC = {"total_ht", "total_vat", "total_ttc"}
 IDLIKE = {"supplier_siret", "supplier_vat_number", "iban", "invoice_number"}
-EXACT_STR = {"invoice_date", "due_date", "document_kind", "language", "currency"}
 LEGAL_FORMS = {"sas", "sarl", "sa", "eurl", "sasu", "ltd", "inc", "llc", "gmbh", "corp"}
 
 
@@ -59,6 +62,8 @@ def field_ok(field: str, expected, got) -> bool:
     if _empty(got):
         return False
     try:
+        if field == "phone":
+            return re.sub(r"\D", "", str(expected))[-9:] == re.sub(r"\D", "", str(got))[-9:]
         if field in NUMERIC:
             return abs(float(expected) - float(got)) <= 0.01
         if field in IDLIKE:
@@ -92,6 +97,27 @@ def vat_ok(expected, got) -> bool:
         return False
     return len(e) == len(g) and all(abs(a[0] - b[0]) <= 0.01 and abs(a[1] - b[1]) <= 0.01 for a, b in zip(e, g))
 
+def _names(items, key=None) -> set:
+    out = set()
+    for i in items or []:
+        v = i.get(key) if key else i
+        if v:
+            out.add(_norm_text(v))
+    return out
+
+
+def _exp_keys(items) -> set:
+    return {(_norm_text(e.get("company") or e.get("title") or ""), str(e.get("start_date") or "")[:4]) for e in items or []}
+
+
+def skills_ok(expected, got) -> bool:
+    e, g = _names(expected), _names(got, "name")
+    if not e:
+        return not g
+    inter = len(e & g)
+    return inter / len(e) >= 0.8 and (not g or inter / len(g) >= 0.8)  # rappel et précision ≥ 80 %
+
+
 
 def check_case(truth: dict, res: dict):
     """Retourne (résultat par champ, liste des erreurs)."""
@@ -114,6 +140,21 @@ def check_case(truth: dict, res: dict):
         record("vat_breakdown", False if failed else vat_ok(truth["vat_breakdown"], data.get("vat_breakdown")),
                [(v.get("rate"), v.get("amount")) for v in truth["vat_breakdown"]],
                [(v.get("rate"), v.get("amount")) for v in data.get("vat_breakdown") or []])
+
+
+    if "experiences" in truth:
+        got_exp = data.get("experiences")
+        record("experiences", False if failed else _exp_keys(truth["experiences"]) == _exp_keys(got_exp),
+               sorted(_exp_keys(truth["experiences"])), sorted(_exp_keys(got_exp)))
+    if "education" in truth:
+        record("education", False if failed else _names(truth["education"], "institution") == _names(data.get("education"), "institution"),
+               sorted(_names(truth["education"], "institution")), sorted(_names(data.get("education"), "institution")))
+    if "skills" in truth:
+        record("skills", False if failed else skills_ok(truth["skills"], data.get("skills")),
+               sorted(_names(truth["skills"])), sorted(_names(data.get("skills"), "name")))
+    if "languages" in truth:
+        record("languages", False if failed else _names(truth["languages"]) == _names(data.get("languages"), "language"),
+               sorted(_names(truth["languages"])), sorted(_names(data.get("languages"), "language")))    
     return outcomes, wrong
 
 
@@ -200,6 +241,16 @@ def cmd_init_truth(args) -> None:
             draft["lines"] = [{"description": l.get("description"), "total_ht": l.get("total_ht")} for l in data["lines"]]
         if "vat_breakdown" in data:
             draft["vat_breakdown"] = [{k: v.get(k) for k in ("rate", "base", "amount")} for v in data["vat_breakdown"]]
+        
+        if "experiences" in data:
+            draft["experiences"] = [{k: e.get(k) for k in ("company", "title", "start_date", "end_date")} for e in data["experiences"]]
+        if "education" in data:
+            draft["education"] = [{k: e.get(k) for k in ("institution", "degree")} for e in data["education"]]
+        if "skills" in data:
+            draft["skills"] = [s.get("name") for s in data["skills"]]
+        if "languages" in data:
+            draft["languages"] = [l.get("language") for l in data["languages"]]
+        
         target.write_text(json.dumps(draft, ensure_ascii=False, indent=2), "utf-8")
         created += 1
     print(f"{created} fichiers créés dans {TRUTH}")

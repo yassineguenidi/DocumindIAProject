@@ -44,7 +44,8 @@ def extract(defn: DocTypeDef, doc: ReadResult) -> Extraction:
             log.warning("Tentative échouée avec %s : %s", model, exc)
             last_error = exc
             continue
-        issues = defn.validate(data)
+        # issues = defn.validate(data)
+        issues = defn.validate(data, doc.text) 
         attempts.append((data, issues))
         if _errors(issues) == 0:
             break  # contrôles satisfaisants : pas besoin du modèle suivant
@@ -53,6 +54,8 @@ def extract(defn: DocTypeDef, doc: ReadResult) -> Extraction:
         raise last_error if isinstance(last_error, PipelineError) else PipelineError("Résultat inexploitable")
 
     data, issues = min(reversed(attempts), key=lambda a: _errors(a[1]))  # à égalité, on préfère le dernier
+    if defn.enrich:                                      # ← à ajouter juste après
+        data["derived"] = defn.enrich(data)
     meta = {
         "provider": settings.LLM_PROVIDER, "mode": doc.mode, "pages": doc.pages, "models": models,
         "escalated": len(models) > 1, "input_tokens": tokens_in, "output_tokens": tokens_out,

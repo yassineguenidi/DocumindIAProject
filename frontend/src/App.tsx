@@ -15,6 +15,7 @@ const Profile = lazy(() => import('./pages/Profile'))
 const LegalNotice = lazy(() => import('./pages/LegalNotice'))
 const Privacy = lazy(() => import('./pages/Privacy'))
 const NotFound = lazy(() => import('./pages/NotFound'))
+const DocumentReview = lazy(() => import('./pages/DocumentReview'))
 
 export default function App() {
   return (
@@ -39,6 +40,7 @@ export default function App() {
             <Route path="/app" element={<AppLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="documents" element={<Documents />} />
+              <Route path="documents/:id" element={<DocumentReview />} />
               <Route path="billing" element={<Billing />} />
               <Route path="profile" element={<Profile />} />
               <Route path="*" element={<NotFound inApp />} />

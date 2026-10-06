@@ -1,4 +1,84 @@
 {
-  "_verified": false,
-  "doc_type": "cv"
+  "_verified": true,
+  "doc_type": "cv",
+  "language": "en",
+  "first_name": "Yassine",
+  "last_name": "GUENIDI",
+  "email": "yassineguenidi99@gmail.com",
+  "phone": "07 73 66 75 60",
+  "location": "Paris, France",
+  "headline": "DATA SCIENTIST – SPECIALIZED IN DATA SCIENCE & ARTIFICIAL INTELLIGENCE",
+  "experiences": [
+    {
+      "company": "Orkeo",
+      "title": "Artificial Intelligence Intern",
+      "start_date": "2025-07",
+      "end_date": "2026-12"
+    },
+    {
+      "company": "Spark It",
+      "title": "Data Scientist",
+      "start_date": "2024-02",
+      "end_date": "2024-06"
+    },
+    {
+      "company": "Alfaplus – retail",
+      "title": "Data Analyst & Web Dvelopper",
+      "start_date": "2023-07",
+      "end_date": "2023-08"
+    },
+    {
+      "company": "Attijari Bank",
+      "title": "Data Scientist",
+      "start_date": "2022-08",
+      "end_date": "2022-08"
+    }
+  ],
+  "education": [
+    {
+      "institution": "IA School",
+      "degree": "Master’s Degree in Data Science and Data Analysis"
+    },
+    {
+      "institution": "Tunisia National School of Electronics and Telecommunications of Sfax",
+      "degree": null
+    },
+    {
+      "institution": "Faculty of Sciences of Monastir",
+      "degree": "Bachelor’s Degree in Computer Science"
+    }
+  ],
+  "skills": [
+    "SQL",
+    "Python",
+    "R",
+    "Java",
+    "Scala",
+    "Data Mining",
+    "Machine Learning",
+    "NLP",
+    "LLM",
+    "RAG",
+    "Time Series Forecasting",
+    "Data Quality",
+    "Power BI",
+    "Tableau",
+    "Matplotlib",
+    "Seaborn",
+    "Dashboarding",
+    "AWS",
+    "Azure",
+    "Google Cloud Platform",
+    "Hadoop",
+    "Spark",
+    "Hive",
+    "Kafka",
+    "YOLOv5",
+    "Object Detection",
+    "OCR (Tesseract)"
+  ],
+  "languages": [
+    "French",
+    "English"
+  ]
 }

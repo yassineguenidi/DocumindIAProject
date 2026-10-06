@@ -1,15 +1,20 @@
 import { useEffect, useRef } from 'react'
-import { Download, LoaderCircle, Trash2, X } from 'lucide-react'
+import { FileSearch, Download, LoaderCircle, Trash2, X } from 'lucide-react'
 import type { DocumentItem } from '../../types'
 import { docTypeLabel, formatBytes, formatDateFull } from '../../utils/format'
 import { StatusBadge } from './StatusBadge'
+import { Link } from 'react-router-dom'
 
 const FIELD_LABELS: Record<string, string> = {
     supplier_name: 'Fournisseur', supplier_address: 'Adresse', supplier_siret: 'SIRET',
     supplier_vat_number: 'N° TVA', customer_name: 'Client', invoice_number: 'N° de facture',
     invoice_date: 'Date', due_date: 'Échéance', currency: 'Devise',
     total_ht: 'Total HT', total_vat: 'TVA', total_ttc: 'Total TTC', language: 'Langue',
-    document_kind: 'Type', customer_siren: 'SIREN du client', iban: 'IBAN', lines: 'Lignes', vat_breakdown: 'TVA par taux'
+    document_kind: 'Type', customer_siren: 'SIREN du client', iban: 'IBAN', lines: 'Lignes', vat_breakdown: 'TVA par taux',
+    first_name: 'Prénom', last_name: 'Nom', headline: 'Titre', email: 'E-mail', phone: 'Téléphone',
+    location: 'Localisation', links: 'Liens', summary: 'Profil', experiences: 'Expériences',
+    education: 'Formations', skills: 'Compétences', languages: 'Langues', certifications: 'Certifications',
+    derived: 'Calculé',
 }
 
 function ExtractedData({ data }: { data: unknown }) {
@@ -107,13 +112,20 @@ export function DocumentDrawer({ doc, downloading, onClose, onDownload, onDelete
                 <h3 className="mb-3 mt-8 font-bold">Données extraites</h3>
                 <ExtractedData data={doc.extracted_data} />
 
-                <div className="mt-auto grid grid-cols-2 gap-3 pt-8">
-                    <button onClick={onDownload} disabled={downloading} className="btn-primary">
-                        {downloading ? <LoaderCircle size={16} className="animate-spin" /> : <Download size={16} />} Télécharger
-                    </button>
-                    <button onClick={onDelete} className="btn-ghost text-red-600 dark:text-red-400">
-                        <Trash2 size={16} /> Supprimer
-                    </button>
+                <div className="mt-auto space-y-3 pt-8">
+                    {(doc.status === 'done' || doc.status === 'failed') && (
+                        <Link to={`/app/documents/${doc.id}`} className="btn-primary w-full">
+                            <FileSearch size={16} /> {doc.status === 'done' ? 'Ouvrir la relecture' : 'Voir et relancer'}
+                        </Link>
+                    )}
+                    <div className="grid grid-cols-2 gap-3">
+                        <button onClick={onDownload} disabled={downloading} className="btn-ghost">
+                            {downloading ? <LoaderCircle size={16} className="animate-spin" /> : <Download size={16} />} Télécharger
+                        </button>
+                        <button onClick={onDelete} className="btn-ghost text-red-600 dark:text-red-400">
+                            <Trash2 size={16} /> Supprimer
+                        </button>
+                    </div>
                 </div>
             </aside>
         </div>
