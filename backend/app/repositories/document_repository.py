@@ -3,7 +3,7 @@ from typing import List, Optional, Tuple
 
 from sqlalchemy.orm import Session
 
-from app.models import Document, DocumentStatus
+from app.models import Document, DocumentStatus, CandidateProfile
 from sqlalchemy import func
 
 def create(db: Session, **fields) -> Document:
@@ -78,4 +78,9 @@ def created_dates_since(db: Session, company_id: int, since: datetime) -> List[d
         .filter(Document.company_id == company_id, Document.created_at >= since)
         .all()
     )
-    return [r[0] for r in rows]    
+    return [r[0] for r in rows]   
+
+def delete(db: Session, doc: Document) -> None:
+    db.query(CandidateProfile).filter(CandidateProfile.document_id == doc.id).delete()
+    db.delete(doc)
+    db.commit() 

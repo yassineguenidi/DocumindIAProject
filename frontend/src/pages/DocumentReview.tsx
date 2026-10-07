@@ -234,6 +234,9 @@ export default function DocumentReview() {
                                                 {i.message}
                                             </button>
                                         ) : i.message}
+                                        {i.ref_document_id && (
+                                            <> <Link to={`/app/documents/${i.ref_document_id}`} className="text-brand-500 font-semibold underline">Voir le document</Link></>
+                                        )}
                                     </li>
                                 ))}
                             </ul>

@@ -22,6 +22,8 @@ from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Qu
 from app.schemas.document import DocumentList, DocumentResponse, ReviewUpdate, StatsResponse, UsageResponse
 from app.services import document_service, layout_service, review_service
 
+from app.services.candidates import index
+
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 
@@ -127,6 +129,20 @@ def get_page_image(doc_id: int, page: int, user: User = Depends(get_current_user
     return Response(content=content, media_type=media_type, headers={"Cache-Control": "private, max-age=600"})
 
 
+# @router.put("/{doc_id}/review", response_model=DocumentResponse)
+# def review_document(doc_id: int, data: ReviewUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+#     return review_service.apply_review(db, user, _own_doc(db, user, doc_id), data)
+    
+
 @router.put("/{doc_id}/review", response_model=DocumentResponse)
-def review_document(doc_id: int, data: ReviewUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    return review_service.apply_review(db, user, _own_doc(db, user, doc_id), data)    
+def review_document(
+    doc_id: int,
+    data: ReviewUpdate,
+    background_tasks: BackgroundTasks,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    doc = review_service.apply_review(db, user, _own_doc(db, user, doc_id), data)
+    if doc.doc_type == "cv":
+        background_tasks.add_task(index.reindex_candidate, doc.id)
+    return doc    

@@ -21,4 +21,7 @@ class Settings(BaseSettings):
     OLLAMA_HOST: str = "http://127.0.0.1:11434"
     OLLAMA_TIMEOUT: int = 900         # un CPU peut mettre plusieurs minutes
 
+    EMBEDDING_PROVIDER: str = ""   # vide = même fournisseur que LLM_PROVIDER ; "none" pour désactiver
+    EMBEDDING_MODEL: str = ""      # gemini : gemini-embedding-001 (par défaut) ; ollama : nomic-embed-text
+
 settings = Settings()

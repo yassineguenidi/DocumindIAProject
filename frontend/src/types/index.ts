@@ -71,6 +71,7 @@ export interface ValidationIssue {
     severity: 'error' | 'warning'
     message: string
     field: string | null
+    ref_document_id?: number
 }
 
 export interface Review {
@@ -79,4 +80,68 @@ export interface Review {
     by: number
     at: string
     corrected_fields: string[]
+}
+
+export interface CandidateHit {
+  document_id: number
+  name: string
+  headline: string | null
+  location: string | null
+  years: number
+  job_family: string | null
+  skills: string[]
+  languages: string[]
+  reasons: string[]
+}
+export interface SearchResponse { items: CandidateHit[]; unindexed: number; semantic: boolean }
+export interface JobCriteria {
+  title: string | null
+  must_have: string[]
+  nice_to_have: string[]
+  min_years: number | null
+  languages: string[]
+}
+export interface CriterionResult {
+  kind: 'must' | 'nice' | 'years' | 'language'
+  label: string
+  status: 'met' | 'to_confirm' | 'missing'
+  evidence: string
+}
+export interface MatchHit extends CandidateHit {
+  criteria: CriterionResult[]
+  summary: { must_met: number; must_to_confirm: number; must_total: number; nice_met: number; nice_total: number }
+}
+export interface CvView {
+  first_name?: string | null
+  last_name?: string | null
+  headline?: string | null
+  summary?: string | null
+  location?: string | null
+  email?: string | null
+  phone?: string | null
+  experiences?: { title?: string | null; company?: string | null; start_date?: string | null; end_date?: string | null; is_current?: boolean; description?: string | null }[]
+  education?: { degree?: string | null; field?: string | null; institution?: string | null; year?: number | null }[]
+  languages?: { language: string; level?: string | null }[]
+  certifications?: { name: string; issuer?: string | null; year?: number | null }[]
+}
+export interface CandidateDetail {
+  document_id: number
+  name: string
+  filename: string | null
+  years: number
+  job_family: string | null
+  data: CvView
+  skills: string[]
+  inferred_skills: { name: string; evidence: string }[]
+}
+export interface Supplier {
+  key: string
+  name: string
+  siret: string | null
+  vat_number: string | null
+  invoice_count: number
+  totals: { currency: string; total: number }[]
+  last_date: string | null
+  ibans: { iban: string; count: number }[]
+  invoices: { document_id: number; number: string | null; date: string | null; total_ttc: number | null; currency: string | null; filename: string }[]
 }

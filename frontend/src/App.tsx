@@ -16,6 +16,8 @@ const LegalNotice = lazy(() => import('./pages/LegalNotice'))
 const Privacy = lazy(() => import('./pages/Privacy'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const DocumentReview = lazy(() => import('./pages/DocumentReview'))
+const Candidates = lazy(() => import('./pages/Candidates'))
+const Suppliers = lazy(() => import('./pages/Suppliers'))
 
 export default function App() {
   return (
@@ -44,6 +46,8 @@ export default function App() {
               <Route path="billing" element={<Billing />} />
               <Route path="profile" element={<Profile />} />
               <Route path="*" element={<NotFound inApp />} />
+              <Route path="candidates" element={<Candidates />} />
+              <Route path="suppliers" element={<Suppliers />} />
             </Route>
           </Route>
           <Route path="*" element={<NotFound />} />

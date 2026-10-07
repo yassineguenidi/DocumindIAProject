@@ -7,6 +7,8 @@ from app.services.pipeline import classifier, extractor, reader
 from app.services.pipeline.errors import PipelineError
 from app.services.pipeline.registry import REGISTRY
 from app.services.storage_service import storage
+from app.services import cross_checks
+from app.services.candidates import index
 
 log = logging.getLogger(__name__)
 
@@ -39,12 +41,14 @@ def process_document(doc_id: int) -> None:
                 meta = {"mode": read.mode, "pages": read.pages, "models": [], "escalated": False,
                         "input_tokens": 0, "output_tokens": 0}
             else:
+                                
                 ext = extractor.extract(defn, read)
                 data, meta = ext.data, ext.meta
+                issues = ext.issues + cross_checks.run(db, doc, data, doc_type)
                 data["_validation"] = {
-                    "ok": not ext.issues,
-                    "issues": [i["message"] for i in ext.issues],
-                    "details": ext.issues,
+                    "ok": not issues,
+                    "issues": [i["message"] for i in issues],
+                    "details": issues,
                 }
 
             _set_status(db, doc, DocumentStatus.VALIDATION)
@@ -56,6 +60,12 @@ def process_document(doc_id: int) -> None:
             doc.extracted_data = data
             doc.error_message = None
             _set_status(db, doc, DocumentStatus.DONE)
+            if doc_type == "cv":  # un échec d'indexation ne doit jamais faire échouer le document
+                try:
+                    index.index_candidate(db, doc)
+                except Exception:
+                    log.exception("Indexation du candidat impossible (document %s)", doc_id)
+                    db.rollback()
         except Exception as exc:
             db.rollback()
             if not isinstance(exc, PipelineError):

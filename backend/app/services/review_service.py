@@ -8,6 +8,8 @@ from app.models import Document, DocumentStatus, User
 from app.schemas.document import ReviewUpdate
 from app.services.pipeline.registry import REGISTRY
 
+from app.services import cross_checks
+
 
 def _fields_only(data: dict) -> dict:
     return {k: v for k, v in data.items() if not k.startswith("_") and k != "derived"}
@@ -30,7 +32,8 @@ def apply_review(db: Session, user: User, doc: Document, payload: ReviewUpdate) 
     current = doc.extracted_data
     original = current.get("_ai_original") or _fields_only(current)  # la sortie de l'IA, conservée une fois pour toutes
     corrected = sorted(k for k in clean if clean.get(k) != original.get(k))
-    issues = defn.validate(clean, doc.ocr_text or "")
+    # issues = defn.validate(clean, doc.ocr_text or "")
+    issues = defn.validate(clean, doc.ocr_text or "") + cross_checks.run(db, doc, clean, doc.doc_type)
 
     new = dict(clean)
     new["_meta"] = current.get("_meta", {})
