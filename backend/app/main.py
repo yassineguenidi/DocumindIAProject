@@ -4,6 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.db import SessionLocal
 from app.models import Document, DocumentStatus
 
+
+from app.services import email_intake
+
+
 app = FastAPI(title="DocuMind AI")
 app.add_middleware(
     CORSMiddleware,
@@ -34,3 +38,14 @@ def recover_interrupted_jobs():
         db.commit()
     finally:
         db.close()
+
+
+
+@app.on_event("startup")
+def start_email_intake():
+    email_intake.start()
+
+
+@app.on_event("shutdown")
+def stop_email_intake():
+    email_intake.stop()        

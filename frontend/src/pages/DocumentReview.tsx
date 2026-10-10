@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, BadgeCheck, Download, LoaderCircle, RefreshCw, Save, TriangleAlert } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, Download, LoaderCircle, RefreshCw, Save, TriangleAlert, FileJson } from 'lucide-react'
 import { StatusBadge } from '../components/documents/StatusBadge'
 import { DocumentViewer } from '../components/review/DocumentViewer'
 import { ReviewForm, type Draft } from '../components/review/ReviewForm'
@@ -14,6 +14,7 @@ import type { DocumentItem, Layout, Review, ValidationIssue } from '../types'
 import { getErrorMessage } from '../utils/errors'
 import { formatDateFull } from '../utils/format'
 import { locate } from '../utils/locate'
+import { downloadExport } from '../services/exportService'
 
 const ACTIVE = ['uploading', 'queued', 'ocr', 'extraction', 'validation']
 
@@ -195,6 +196,12 @@ export default function DocumentReview() {
                 <div className="flex flex-wrap gap-2">
                     <button onClick={() => void download()} disabled={downloading} className="btn-icon" aria-label="Télécharger l'original">
                         {downloading ? <LoaderCircle size={18} className="animate-spin" /> : <Download size={18} />}
+                    </button>
+                    <button
+                        onClick={() => void downloadExport(`/exports/documents/${doc.id}.json`, {}, `document-${doc.id}.json`).catch((e) => toast.error(getErrorMessage(e)))}
+                        className="btn-icon" aria-label="Exporter les données en JSON"
+                    >
+                        <FileJson size={18} />
                     </button>
                     <button onClick={() => setConfirmRerun(true)} disabled={busy !== null} className="btn-ghost"><RefreshCw size={16} /> Relancer</button>
                     <button onClick={() => void save(false)} disabled={!dirty || busy !== null} className="btn-ghost disabled:opacity-60">

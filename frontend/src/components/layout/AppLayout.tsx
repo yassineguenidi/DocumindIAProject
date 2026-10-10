@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Building2, CreditCard, FileText, LayoutDashboard, LogOut, Menu, Moon, Sun, User as UserIcon, X, Users, Store } from 'lucide-react'
+import { Building2, CreditCard, FileText, LayoutDashboard, LogOut, Menu, Moon, Sun, User as UserIcon, X, Users, Store, FileSpreadsheet } from 'lucide-react'
 import { Logo } from '../Logo'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
@@ -11,6 +11,7 @@ const NAV = [
     { to: '/app/documents', label: 'Documents', icon: FileText, end: false },
     { to: '/app/candidates', label: 'Candidats', icon: Users, end: false },
     { to: '/app/suppliers', label: 'Fournisseurs', icon: Store, end: false },
+    { to: '/app/exports', label: 'Exports', icon: FileSpreadsheet, end: false },
     { to: '/app/billing', label: 'Abonnement', icon: CreditCard, end: false },
     { to: '/app/profile', label: 'Profil', icon: UserIcon, end: false },
 

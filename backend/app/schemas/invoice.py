@@ -27,6 +27,7 @@ class InvoiceData(BaseModel):
     customer_name: Optional[str] = Field(None, description="Destinataire de la facture")
     customer_siren: Optional[str] = Field(None, description="SIREN du client (9 chiffres), s'il est indiqué")
     invoice_number: Optional[str] = None
+    purchase_order_ref: Optional[str] = Field(None, description="Référence de commande ou de bon de commande citée sur la facture")
     invoice_date: Optional[str] = Field(None, description="Date de facture, format AAAA-MM-JJ")
     due_date: Optional[str] = Field(None, description="Date d'échéance, format AAAA-MM-JJ")
     currency: Optional[str] = Field(None, description="Code ISO, par exemple EUR")

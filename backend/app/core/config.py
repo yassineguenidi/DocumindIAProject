@@ -23,5 +23,15 @@ class Settings(BaseSettings):
 
     EMBEDDING_PROVIDER: str = ""   # vide = même fournisseur que LLM_PROVIDER ; "none" pour désactiver
     EMBEDDING_MODEL: str = ""      # gemini : gemini-embedding-001 (par défaut) ; ollama : nomic-embed-text
-
+    
+    IMAP_HOST: str = ""
+    IMAP_PORT: int = 993
+    IMAP_USER: str = ""
+    IMAP_PASSWORD: str = ""
+    IMAP_FOLDER: str = "INBOX"
+    IMAP_POLL_SECONDS: int = 60
+    INBOX_REQUIRE_AUTH: bool = True       # exige DKIM ou SPF valide sur le mail reçu
+    INBOX_MIN_IMAGE_BYTES: int = 30000    # ignore les images plus petites (logos de signature)
+    
+    SENSITIVE_PROVIDERS: str = ""   # ex. "ollama,anthropic" : seuls ces fournisseurs traitent les types sensibles
 settings = Settings()

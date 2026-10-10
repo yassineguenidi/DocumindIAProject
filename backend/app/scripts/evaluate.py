@@ -23,17 +23,37 @@ BASE = Path(__file__).resolve().parents[2] / "eval"
 CASES, TRUTH, RUNS = BASE / "cases", BASE / "truth", BASE / "runs"
 MIMES = {".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
 
+# SCALARS = [
+#     "document_kind", "language", "supplier_name", "supplier_siret", "supplier_vat_number",
+#     "customer_name", "invoice_number", "invoice_date", "due_date", "currency",
+#     "total_ht", "total_vat", "total_ttc", "iban",
+#     "first_name", "last_name", "email", "phone", "location", "headline",
+# ]
+# EXACT_STR = {"invoice_date", "due_date", "document_kind", "language", "currency", "email"}
+
+
+# NUMERIC = {"total_ht", "total_vat", "total_ttc"}
+# IDLIKE = {"supplier_siret", "supplier_vat_number", "iban", "invoice_number"}
+
 SCALARS = [
     "document_kind", "language", "supplier_name", "supplier_siret", "supplier_vat_number",
     "customer_name", "invoice_number", "invoice_date", "due_date", "currency",
     "total_ht", "total_vat", "total_ttc", "iban",
     "first_name", "last_name", "email", "phone", "location", "headline",
+    # bulletin de paie, contrat, avis d'imposition, justificatif de domicile, pièce d'identité
+    "employer_name", "employer_siret", "employee_first_name", "employee_last_name", "job_title",
+    "period_start", "period_end", "pay_date", "gross_salary", "net_before_tax", "net_taxable",
+    "income_tax_withheld", "net_paid", "contract_type", "start_date", "end_date", "signature_date",
+    "salary_period", "income_year", "issue_year", "fiscal_reference_income", "household_parts",
+    "income_tax_amount", "declarant_1_name", "postal_code", "city", "kind", "holder_name",
+    "issue_date", "expiry_date", "first_names",
 ]
-EXACT_STR = {"invoice_date", "due_date", "document_kind", "language", "currency", "email"}
-
-
-NUMERIC = {"total_ht", "total_vat", "total_ttc"}
-IDLIKE = {"supplier_siret", "supplier_vat_number", "iban", "invoice_number"}
+NUMERIC = {"total_ht", "total_vat", "total_ttc", "gross_salary", "net_before_tax", "net_taxable", "income_tax_withheld",
+           "net_paid", "income_year", "issue_year", "fiscal_reference_income", "household_parts", "income_tax_amount"}
+IDLIKE = {"supplier_siret", "supplier_vat_number", "iban", "invoice_number", "employer_siret"}
+EXACT_STR = {"invoice_date", "due_date", "document_kind", "language", "currency", "email", "period_start", "period_end",
+             "pay_date", "contract_type", "start_date", "end_date", "signature_date", "salary_period", "postal_code",
+             "kind", "issue_date", "expiry_date"}
 LEGAL_FORMS = {"sas", "sarl", "sa", "eurl", "sasu", "ltd", "inc", "llc", "gmbh", "corp"}
 
 

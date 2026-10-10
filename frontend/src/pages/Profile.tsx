@@ -9,6 +9,7 @@ import { changePassword, updateProfile } from '../services/profileService'
 import type { User } from '../types'
 import { getErrorMessage } from '../utils/errors'
 import { passwordRules } from '../utils/password'
+import { InboxCard } from '../components/settings/InboxCard'
 
 
 
@@ -164,6 +165,12 @@ export default function Profile() {
                 <h2 className="mb-5 text-lg font-bold">Apparence</h2>
                 <Appearance />
             </Reveal>
+            {user.role === 'admin' && (
+                <Reveal className="card p-6 sm:p-8">
+                    <h2 className="mb-5 text-lg font-bold">Réception par email</h2>
+                    <InboxCard />
+                </Reveal>
+            )}
         </div>
     )
 }
